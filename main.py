@@ -15,165 +15,7 @@ import glpk
 import random
 import datetime
 
-class Station:
-    def __init__(self, name, port=None, type=None):
-        self.name = name
-        self.port = port
-        self.type = type
-
-
-class Kray:
-    def __init__(self, name, ports):
-        self.name = name
-        self.ports = ports
-
-
-class Port:
-    """
-        :param
-        name - назание порта
-        kray - край, в котором находится порт
-        coordinates - координаты порта
-        """
-    def __init__(self, name, kray, coordinates = None):
-        self.name = name
-        self.kray = kray
-        self.coordinates = coordinates
-
-
-class Task:
-    """
-    :param
-    i - id заявки
-    from_st - станция отправления
-    to_st - станция назначения
-    j - нить
-    k - id корабля
-    """
-    def __init__(self, appl_id, from_st, to_st, ship_id):
-        self.i = appl_id
-        self.from_st = from_st
-        self.to_st = to_st
-        self.j = f'{self.from_st.name} - {self.to_st.name}'
-        self.k = ship_id
-
-
-class Destination:
-    """
-    params:
-    thread_name - имя нити
-    distance - расстояние между пунктами
-    time - время в пути
-    freight_charge - стоимость провоза 1 контейнера
-    """
-    def __init__(self, graph, from_st, to_st, thread_name, distance, time, freight_charge):
-        self.graph = graph
-        self.thread_name = thread_name
-        self.from_st = from_st
-        self.to_st = to_st
-        self.distance = distance
-        self.time = time
-        self.freight_charge = freight_charge
-
-
-class Ship:
-    """
-    params:
-    ship_id - id корабля
-    port - название порта
-    load_start - время начала погрузки
-    load_end - время конца погразки
-    container_capacity - вместимость корабля (число контейнеров)
-    freight_charge_filled - оплата контейнероместа при использовании
-    freight_charge_vacant - оплата контейнероместа (резервирование)
-
-    """
-    def __init__(self, ship_id, port, load_start, load_end,
-                 container_capacity, freight_charge_filled, freight_charge_vacant):
-        self.ship_id = ship_id
-        self.port = port
-        self.load_start = load_start
-        self.load_end = load_end
-        self.container_capacity = container_capacity
-        self.freight_charge_filled = freight_charge_filled
-        self.freight_charge_vacant = freight_charge_vacant
-
-
-class Application:
-
-    """
-    params:
-    appl_id - номер заявки
-    start - начало
-    end - конец
-    num_cont - число контейнеров
-    departure - точка отправления
-    arrival - точка прибытия
-    cont_cost - стоимость провоза (прибыль)
-    """
-
-    def __init__(self, appl_id, start, end, num_cont, departure, arrival, cont_cost):
-        self.appl_id = appl_id
-        self.start = start
-        self.end = end
-        self.num_cont = num_cont
-        self.departure = departure
-        self.arrival = arrival
-        self.cont_cost = cont_cost
-
-
 if __name__ == "__main__":
-
-    krays = np.array([Kray('Приморский', ['Находка', 'Восточный', 'Владивосток']),
-                    Kray('Хабаровский', ['Ванино'])])
-    ports = np.array([Port(name='Находка', kray='Приморский', coordinates="42°47' С.Ш. 132°52' В.Д."),
-                      Port(name='Восточный', kray='Приморский', coordinates="42°46' С.Ш. 133°03' В.Д."),
-                      Port(name='Владивосток', kray='Приморский', coordinates="43°05' С.Ш. 131°54' В.Д."),
-                      Port(name='Ванино', kray='Хабаровский', coordinates="53°00' С.Ш. 158°39' В.Д."),
-                      Port(name='Зарубино', kray='Приморский', coordinates="42°38′20″ С.Ш. 131°04′30″ В.Д.")])
-    stations = [Station('Хани'), Station('Беркакит'), Station('Бестужево'), Station('Тында'),
-                         Station('Штурм'), Station('Новый Ургал'), Station('Известковая'),
-                         Station('Архара'), Station('Комсомольск-на-Амуре'), Station('Волочаевка'),
-                         Station('Биробиджан'), Station('Ленинск'), Station('Хабаровск'),
-                         Station('Сибирцево'), Station('Новочугуевка'), Station('Новокачалинск'),
-                         Station('Гродеково'), Station('Уссурийск'), Station('Барановский'),
-                         Station('Хасан'),
-                         Station(name='Ванино', port=ports[3]),
-                         Station(name='Посьет', port=ports[4]),
-                         Station(name='Владивосток', port=ports[2]),
-                         Station(name='Дунай', port=ports[0]),
-                         Station(name='Находка', port=ports[1])]
-    threads = [(stations[0], stations[3], {'weight': 486}), (stations[3], stations[4], {'weight': 162}),
-               (stations[2], stations[3], {'weight': 27}), (stations[1], stations[2], {'weight': 193}),
-               (stations[5], stations[2], {'weight': 924}), (stations[5], stations[6], {'weight': 347}),
-               (stations[8], stations[5], {'weight':  538}), (stations[6], stations[7], {'weight': 154}),
-               (stations[8], stations[9], {'weight': 353}), (stations[6], stations[10], {'weight': 116}),
-               (stations[10], stations[11], {'weight': 121}), (stations[10], stations[9], {'weight': 124}),
-               (stations[8], stations[20], {'weight': 489}), (stations[9], stations[12], {'weight': 49}),
-               (stations[13], stations[12], {'weight': 586}), (stations[13], stations[14], {'weight': 163}),
-               (stations[13], stations[15], {'weight': 127}), (stations[13], stations[17], {'weight': 68}),
-               (stations[17], stations[16], {'weight': 97}), (stations[17], stations[18], {'weight': 23}),
-               (stations[18], stations[24], {'weight': 223}), (stations[18], stations[23], {'weight': 155}),
-               (stations[18], stations[22], {'weight': 89}),
-               (stations[18], stations[19], {'weight': 237}), (stations[18], stations[21], {'weight': 195})]
-
-    #граф
-    G = nx.Graph()
-    G.add_nodes_from(stations)
-    G.add_edges_from(threads)
-    # print(G[stations[18]][stations[19]]['weight'])
-
-    #считает в км длину наименьшего пути
-    # print(nx.shortest_path_length(G, source=stations[0], target=stations[19], weight='weight', method='dijkstra'))
-
-    #выводит наименьший путь
-    # print([_.name for _ in nx.shortest_path(G, source=stations[0], target=stations[19], weight='string', method='dijkstra')])
-
-    # def func(el):
-    #     return el[0].name, el[1].name
-    # print(list(map(func, G.edges())))
-    # train_schedule = pd.DataFrame(columns=['train_id', 'from', 'to', 'stations', 'time_departure', 'time_arrival'])
-    # port_schedule = pd.DataFrame(columns=['ship_id', 'start_load', 'end_load', 'capacity_available', 'time_arrival'])
 
     port_schedule = pd.DataFrame(columns=['port', 'time_dep', 'cost'])
     task_schedule = pd.DataFrame(columns=['id_task', 'from_station', 'time_st', 'time_end', 'num_cont', 'payment'])
@@ -214,90 +56,95 @@ if __name__ == "__main__":
         list_task = [i, task_from, task_st_date, task_end_date, task_num_cont, task_payment]
         task_schedule.loc[i] = list_task
 
-    # from_st = 'Беркакит'
-    from_st = input(f"Выберите станцию отправления из списка: {train_data['от'].unique()}: ")
+    # from_st = input(f"Выберите станцию отправления из списка: {train_data['от'].unique()}: ")
+    result_tasks = pd.DataFrame(columns=['id заявки', 'От станции', 'До станции(порт)', 'Время отправления корабля', 'Доход от заявки', 'Расходы на выполнение', 'Прибыль'])
+    cnt = 0
+    for st in train_data['от'].unique():
+        from_st = st
+        print(from_st)
+        # Step 0: Create an instance of the model
+        model = ConcreteModel()
+        model.dual = Suffix(direction=Suffix.IMPORT)
+        # Step 1: Define index sets
+        to_port = list(port_schedule['port'].unique())
+        time_dep = list(port_schedule['time_dep'].unique())
+        ID_task = list(task_schedule[task_schedule['from_station'] == from_st]['id_task'])
+        cost_downtime = 10000 #стоимость простоя
+        curr_date = datetime.datetime.today()
+        # Step 2: Define the decision
+        model.x = Var(to_port, time_dep, ID_task, within=Binary)
+        # Step 3: Define Objective
+        model.Cost = Objective(
+            expr=sum([(task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0]
+                       - (train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['стоимость, руб'].to_numpy()[0]
+                     + ((j - curr_date.date()).days - train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0])
+                          * cost_downtime + port_schedule[(port_schedule['port'] == i) & (port_schedule['time_dep'] == j)]['cost'].to_numpy()[0])) * model.x[i, j, k]
+                      for i in to_port for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()) for k in ID_task]),
+            sense=maximize)
+        # Step 4: Constraints
 
-    # Step 0: Create an instance of the model
-    model = ConcreteModel()
-    model.dual = Suffix(direction=Suffix.IMPORT)
-    # Step 1: Define index sets
-    to_port = list(port_schedule['port'].unique())
-    time_dep = list(port_schedule['time_dep'].unique())
-    ID_task = list(task_schedule[task_schedule['from_station'] == from_st]['id_task'])
-    cost_downtime = 10000 #стоимость простоя
-    curr_date = datetime.datetime.today()
-    # Step 2: Define the decision
-    model.x = Var(to_port, time_dep, ID_task, within=Binary)
-    # Step 3: Define Objective
-    model.Cost = Objective(
-        expr=sum([(task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0]
-                   - (train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['стоимость, руб'].to_numpy()[0]
-                 + ((j - curr_date.date()).days - train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0])
-                      * cost_downtime + port_schedule[(port_schedule['port'] == i) & (port_schedule['time_dep'] == j)]['cost'].to_numpy()[0])) * model.x[i, j, k]
-                  for i in to_port for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()) for k in ID_task]),
-        sense=maximize)
-    # Step 4: Constraints
-    model.x_weight = Constraint(
-        expr=sum(model.x[i, j, k] for i in to_port for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()) for k in ID_task) <= 1)
+        model.x_weight = Constraint(
+            expr=sum(model.x[i, j, k] for i in to_port for j in
+                     list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()) for k in ID_task) <= 1)
 
-    model.time_cost = Constraint(
-        expr=sum((task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0] -
-                  train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['стоимость, руб'].to_numpy()[0] -
-                  port_schedule[(port_schedule['port'] == i) & (port_schedule['time_dep'] == j)]['cost'].to_numpy()[0] -
-                  cost_downtime * ((j - curr_date.date()).days -
-                                   train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0]))
-                  * model.x[i, j, k] for i in to_port for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique())
-                 for k in ID_task) >= 0)
+        model.time_cost = Constraint(
+            expr=sum((task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0] -
+                      train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['стоимость, руб'].to_numpy()[0] -
+                      port_schedule[(port_schedule['port'] == i) & (port_schedule['time_dep'] == j)]['cost'].to_numpy()[0] -
+                      cost_downtime * ((j - curr_date.date()).days -
+                                       train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0]))
+                      * model.x[i, j, k] for i in to_port for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique())
+                     for k in ID_task) >= 0)
 
-    model.time_weight = Constraint(
-        expr=sum((task_schedule[task_schedule['id_task'] == k]['time_end'].to_numpy()[0] - j).days
-                 * model.x[i, j, k] for i in to_port for j in
-                 list(port_schedule[port_schedule['port'] == i]['time_dep'].unique())
-                 for k in ID_task) >= 0)
+        model.time_weight = Constraint(
+            expr=sum((task_schedule[task_schedule['id_task'] == k]['time_end'].to_numpy()[0] - j).days
+                     * model.x[i, j, k] for i in to_port for j in
+                     list(port_schedule[port_schedule['port'] == i]['time_dep'].unique())
+                     for k in ID_task) >= 0)
 
-    model.time_id = Constraint(
-        expr=sum(((j - curr_date.date()).days -
-                  train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0])
-                 * model.x[i, j, k] for i in to_port for j in
-                 list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()) for k in ID_task) >= 1)
+        model.time_id = Constraint(
+            expr=sum(((j - curr_date.date()).days -
+                      train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0])
+                     * model.x[i, j, k] for i in to_port for j in
+                     list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()) for k in ID_task) >= 1)
 
-    # model.dmd = ConstraintList()
-    # for i in to_port:
-    #     for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()):
-    #         train_days = train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0]
-    #         # print((j - curr_date.date()).days - train_days)
-    #         model.dmd.add(((j - curr_date.date()).days - train_days) * model.x[i, j] >= 0)
+        # solve
+        results = SolverFactory('glpk').solve(model)
+        # results.write()
 
-    # solve
-    results = SolverFactory('glpk').solve(model)
-    # results.write()
-    # print(train_data[(train_data['от'] == from_st) & (train_data['до'] == 'Ванино')]['стоимость, руб'].to_numpy()[0] + (list(port_schedule[port_schedule['port'] == 'Ванино']['time_dep'].unique())[0] - curr_date.date()).days)
+        for i in to_port:
+            for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()):
+                for k in ID_task:
+                    t = train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['стоимость, руб'].to_numpy()[0]
+                    p = port_schedule[(port_schedule['port'] == i) & (port_schedule['time_dep'] == j)]['cost'].to_numpy()[0]
+                    if model.x[i, j, k]() == float(1):
+                        flag = 1
+                        train_days = train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0]
+                        # print(f'со станции {from_st}, в пути ~ {train_days} дней')
+                        # print(f'Прибывает на станцию {i}, корабль отправляется {j}: {model.x[i, j, k]()}')
+                        # print(f"выручка: {task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0]}")
+                        # print(f'стоимость провоза на поезде и корабле: {t + p}')
+                        # print(f"train: {t}")
+                        # print(f"port: {p}")
+                        income = task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0]
+                        expense = t + p + cost_downtime * ((j - curr_date.date()).days - train_days)
+                        profit = income - expense
+                        # print(f"прибыль: {profit}")
+                        # print(f"стоимость простоя: {cost_downtime * ((j - curr_date.date()).days - train_days)}")
+                        # print(f"id заявки: {k}")
+                        # print(task_schedule[task_schedule['id_task'] == k]['time_end'].to_numpy()[0])
+                        # print((task_schedule[task_schedule['id_task'] == k]['time_end'].to_numpy()[0] - j).days
+                      # * model.x[i, j, k])
+                      #   columns = ['id заявки', 'От станции', 'До станции(порт)', 'Время отправления корабля',
+                      #              'Доход от заявки', 'Расходы на выполнение', 'Прибыль']
+                        result_tasks.loc[cnt] = [k, from_st, i, j, income, expense, profit]
+                        cnt += 1
+        # if flag == 0:
+        #     print("Нет заявок, удовлетворяющих условиям")
 
-
-    for i in to_port:
-        for j in list(port_schedule[port_schedule['port'] == i]['time_dep'].unique()):
-            for k in ID_task:
-                t = train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['стоимость, руб'].to_numpy()[0]
-                p = port_schedule[(port_schedule['port'] == i) & (port_schedule['time_dep'] == j)]['cost'].to_numpy()[0]
-                if model.x[i, j, k]() == float(1):
-                    train_days = train_data[(train_data['от'] == from_st) & (train_data['до'] == i)]['время, дней'].to_numpy()[0]
-                    print(f'со станции {from_st}, в пути ~ {train_days} дней')
-                    print(f'Прибывает на станцию {i}, корабль отправляется {j}: {model.x[i, j, k]()}')
-                    print(f"выручка: {task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0]}")
-                    print(f'стоимость провоза на поезде и корабле: {t + p}')
-                    print(f"train: {t}")
-                    print(f"port: {p}")
-                    print(f"доход: {task_schedule[task_schedule['id_task'] == k]['payment'].to_numpy()[0]- t - p - cost_downtime * ((j - curr_date.date()).days - train_days)}")
-                    print(f"стоимость простоя: {cost_downtime * ((j - curr_date.date()).days - train_days)}")
-                    print(f"id заявки: {k}")
-                    # print((task_schedule[task_schedule['from_station'] == 'Беркакит']['time_end'].to_numpy()[0] - j).days)
-                    # print(port_schedule[port_schedule['port'] == k])
-                    print(task_schedule[task_schedule['id_task'] == k]['time_end'].to_numpy()[0])
-                    print((task_schedule[task_schedule['id_task'] == k]['time_end'].to_numpy()[0] - j).days
-                  * model.x[i, j, k])
-
-    # print(task_schedule[task_schedule['from_station'] == 'Беркакит']['time_end'].to_numpy()[0])
-
+        # print(task_schedule[task_schedule['from_station'] == 'Беркакит']['time_end'].to_numpy()[0])
+    print(result_tasks)
+    result_tasks.to_csv('results.csv')
 
 
 
